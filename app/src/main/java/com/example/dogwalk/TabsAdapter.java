@@ -19,13 +19,13 @@ public class TabsAdapter extends FragmentStatePagerAdapter
     public Fragment getItem(int position){
         switch (position){
             case 0:
-                AboutFragment about = new AboutFragment();
+                PreviousWalks about = new PreviousWalks();
                 return about;
             case 1:
                 HomeFragment home = new HomeFragment();
                 return home;
             case 2:
-                ContactFragment contact = new ContactFragment();
+                DogInfo contact = new DogInfo();
                 return contact;
             default:
                 return null;

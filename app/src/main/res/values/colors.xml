@@ -3,4 +3,6 @@
     <color name="colorPrimary">#efddb7</color>
     <color name="colorPrimaryDark">#ecd4a0</color>
     <color name="colorAccent">#a6a6a5</color>
+    <color name="polyline">#4277f4</color>
+
 </resources>
