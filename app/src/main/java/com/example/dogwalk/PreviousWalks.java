@@ -1,13 +1,13 @@
 package com.example.dogwalk;
 
-import android.support.v4.app.Fragment; import android.os.Bundle;
+import android.content.Context;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-/**
- * Created by tutlane on 09-01-2018.
- */
 
 public class PreviousWalks extends Fragment {
     @Override

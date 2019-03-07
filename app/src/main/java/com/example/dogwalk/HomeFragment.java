@@ -241,6 +241,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
             double x0 = userLocation.latitude;
             double y0 = userLocation.longitude;
 
+            radius = radius/3;
             Random random = new Random();
             // Convert radius from meters to degrees
             double radiusInDegrees = radius / 111000f;

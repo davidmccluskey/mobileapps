@@ -3,4 +3,7 @@
     <string name="title_activity_maps">Dog Walk</string>
     <string name="directionsApiKey">AIzaSyCJMwZUwuqM8zrNrxz-80G_BPoNkXAPmgc
 </string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

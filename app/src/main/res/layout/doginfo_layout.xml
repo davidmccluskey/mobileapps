@@ -3,11 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
     <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
+        android:id="@+id/information"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="Contact Tab"
-        android:textAppearance="?android:attr/textAppearanceLarge"/>
+        android:padding="20dp"
+        android:textSize="17sp"
+        android:textColor="#000"
+        android:text="Information on popular breeds of dogs, giving information on how long they should be walked and how many times a day."
+        />
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/information">
+    </android.support.v7.widget.RecyclerView>
 </RelativeLayout>
