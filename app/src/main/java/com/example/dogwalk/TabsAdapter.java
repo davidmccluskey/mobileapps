@@ -7,6 +7,10 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 public class TabsAdapter extends FragmentStatePagerAdapter
 {
     int mNumOfTabs;
+    public PreviousWalks previousWalks;
+    public MapFragment mapFragment;
+    public DogInfo dogInfo;
+
     public TabsAdapter(FragmentManager fm, int NoofTabs){
         super(fm);
         this.mNumOfTabs = NoofTabs;
@@ -19,14 +23,14 @@ public class TabsAdapter extends FragmentStatePagerAdapter
     public Fragment getItem(int position){
         switch (position){
             case 0:
-                PreviousWalks about = new PreviousWalks();
-                return about;
+                previousWalks = new PreviousWalks();
+                return previousWalks;
             case 1:
-                HomeFragment home = new HomeFragment();
-                return home;
+                mapFragment = new MapFragment();
+                return mapFragment;
             case 2:
-                DogInfo contact = new DogInfo();
-                return contact;
+                dogInfo = new DogInfo();
+                return dogInfo;
             default:
                 return null;
         }

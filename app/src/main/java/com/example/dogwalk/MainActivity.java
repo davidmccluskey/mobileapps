@@ -1,11 +1,20 @@
 package com.example.dogwalk;
+import android.graphics.Bitmap;
+import android.nfc.Tag;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity implements mapInterface
+{
+    TabsAdapter tabsAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -14,16 +23,20 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
         TabLayout tabLayout = findViewById(R.id.tab_layout);
+
         tabLayout.addTab(tabLayout.newTab().setText("Previous Walks"));
-        tabLayout.addTab(tabLayout.newTab().setText("Home"));
-        tabLayout.addTab(tabLayout.newTab().setText("Dog Information"));
+        tabLayout.addTab(tabLayout.newTab().setText("Map"));
+        tabLayout.addTab(tabLayout.newTab().setText("Breed Info"));
+
+
         tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
         final ViewPager viewPager =findViewById(R.id.view_pager);
-        TabsAdapter tabsAdapter = new TabsAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
+        tabsAdapter = new TabsAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(tabsAdapter);
-        viewPager.setCurrentItem(1);
         viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        viewPager.setCurrentItem(1);
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener()
+        {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 viewPager.setCurrentItem(tab.getPosition());
@@ -34,8 +47,13 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-
             }
         });
+    }
+
+    @Override
+    public void sendSnapshot(Bitmap snapshot, String info)
+    {
+        tabsAdapter.previousWalks.add(snapshot, info);
     }
 }

@@ -2,13 +2,11 @@ package com.example.dogwalk;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,17 +14,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.SlidingDrawer;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -36,11 +29,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.maps.GeoApiContext;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -51,47 +42,43 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
-public class HomeFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
-    private static final String TAG = "HomeFragment";
+public class MapFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
+    private static final String TAG = "MapFragment";
     private GoogleMap mMap;
     private static Button b1, b2;
-    private static ImageButton slideButton;
     private static EditText textbox;
-    private static SlidingDrawer slidingDrawer;
     private FusedLocationProviderClient mFusedLocationProvider;
     private Boolean mLocationPermissionGranted = false;
     private static final int REQUEST_CODE = 1;
     private LatLng latLngLocation;
     private List<LatLng> listPoints = new ArrayList<>();
     private static final int LOCATION_REQUEST = 500;
-
-    public static HomeFragment newInstance() {
-        HomeFragment fragment = new HomeFragment();
-        return fragment;
-    }
+    mapInterface snapshotInterface;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View mView = inflater.inflate(R.layout.homelayout, null, false);
+        View mView = inflater.inflate(R.layout.map_layout, null, false);
         GetLocationPermissions();
 
         SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-
-        slideButton = mView.findViewById(R.id.slideButton);
-        slidingDrawer = mView.findViewById(R.id.SlidingDrawer);
         b1 = mView.findViewById(R.id.btnGenerate);
         b2 = mView.findViewById(R.id.btnSave);
-        textbox = mView.findViewById(R.id.radius);
-        setListeners();
 
+        b1.setOnClickListener(this);
+        b2.setOnClickListener(this);
+        textbox = mView.findViewById(R.id.radius);
         return mView;
     }
 
@@ -112,30 +99,31 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
 
     @Override
     public void onClick(View v) {
+        String sradius = textbox.getText().toString();
         switch (v.getId()) {
-
             case R.id.btnGenerate:
-                String sradius = textbox.getText().toString();
-                int intradius = Integer.parseInt(sradius);
-                Log.d(TAG, "onClick: User location is " + latLngLocation);
-                mMap.clear();
-                listPoints.clear();
-                Run(latLngLocation, intradius, mMap);
-                break;
-
+                try
+                {
+                    int radius = Integer.parseInt(sradius);
+                    Log.d(TAG, "onClick: User location is " + latLngLocation);
+                    mMap.clear();
+                    listPoints.clear();
+                    RandomPoints(latLngLocation, radius);
+                    break;
+                } catch (Exception e)
+                {
+                    Log.i("",sradius+" is not a number");
+                    Toast.makeText(getContext(), "Please enter a number.", Toast.LENGTH_SHORT).show();
+                    break;
+                }
             case R.id.btnSave:
-                // do your code
+                takeSnapshot();
+                Toast.makeText(getContext(), "Feature not currently working.", Toast.LENGTH_SHORT).show();
                 break;
-
 
             default:
                 break;
         }
-    }
-
-    void setListeners() {
-        b1.setOnClickListener(this);
-        b2.setOnClickListener(this);
     }
 
     public void GetLocationPermissions()
@@ -202,7 +190,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
                             Log.d(TAG, "onComplete: found location");
                             Location currentLocation = (Location) task.getResult();
                             latLngLocation = (new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
-                            moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 10);
+                            moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 15);
                         }
                         else{
                             Log.d(TAG, "onComplete: location not found");
@@ -224,25 +212,25 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
     }
 
 
-    public void Run(LatLng LatLngLocation, int radius, GoogleMap mMap)
+    public void RandomPoints(LatLng userLocation, int radius)
     {
-//        Log.d(TAG, "Run: Location is " + LatLngLocation);
-//
-//        location.setLatitude(LatLngLocation.latitude);
-//        location.setLongitude(LatLngLocation.longitude);
+        radius = radius/3;
 
-        RandomPoints(LatLngLocation, radius);
+        int dg = ThreadLocalRandom.current().nextInt(90, 180 + 1);
+        //int dg = 90;
+        double perflat = Math.sin(dg * Math.PI / 180) * (radius/111000f) + userLocation.latitude;
+        double perflng = Math.cos(dg * Math.PI / 180) * (radius/111000f) + userLocation.longitude;
 
-    }
+        LatLng perfectLatLng = new LatLng(perflat, perflng);
+        listPoints.add(perfectLatLng);
 
-    public void RandomPoints(LatLng userLocation, int radius) {
-
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 3; i++)
+        {
             double x0 = userLocation.latitude;
             double y0 = userLocation.longitude;
 
-            radius = radius/3;
             Random random = new Random();
+
             // Convert radius from meters to degrees
             double radiusInDegrees = radius / 111000f;
 
@@ -267,7 +255,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
 
         String waypointString = "&waypoints=optimize:true";
 
-        for(int i = 0; i < 3; i++)
+        for(int i = 0; i < 4; i++)
         {
             String lat = "via:" + Double.toString(listPoints.get(i).latitude);
             String lng = "%2C" + Double.toString(listPoints.get(i).longitude);
@@ -276,13 +264,14 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
         Log.d(TAG, "RandomPoints:" + waypointString);
 
         String url = getRequestUrl(userLocation, waypointString);
-        HomeFragment.TaskRequestDirections taskRequestDirections = new HomeFragment.TaskRequestDirections();
+        MapFragment.TaskRequestDirections taskRequestDirections = new MapFragment.TaskRequestDirections();
         taskRequestDirections.execute(url);
 
 
     }
 
-    private String getRequestUrl(LatLng userlocation, String waypointString) {
+    private String getRequestUrl(LatLng userlocation, String waypointString)
+    {
         //Value of origin
         String str_org = "origin=" + userlocation.latitude +","+userlocation.longitude;
         //Value of destination
@@ -299,7 +288,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
         return url;
     }
 
-    private String requestDirection(String reqUrl) throws IOException {
+    private String requestDirection(String reqUrl) throws IOException
+    {
         String responseString = "";
         InputStream inputStream = null;
         HttpURLConnection httpURLConnection = null;
@@ -346,7 +336,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
         }
     }
 
-    public class TaskRequestDirections extends AsyncTask<String, Void, String> {
+    public class TaskRequestDirections extends AsyncTask<String, Void, String>
+    {
 
         @Override
         protected String doInBackground(String... strings) {
@@ -363,12 +354,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             //Parse json here
-            HomeFragment.TaskParser taskParser = new HomeFragment.TaskParser();
+            MapFragment.TaskParser taskParser = new MapFragment.TaskParser();
             taskParser.execute(s);
         }
     }
 
-    public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>> > {
+    public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>> >
+    {
 
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... strings) {
@@ -392,11 +384,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
 
             PolylineOptions polylineOptions = null;
 
-            for (List<HashMap<String, String>> path : lists) {
+            for (List<HashMap<String, String>> path : lists)
+            {
                 points = new ArrayList();
                 polylineOptions = new PolylineOptions();
 
-                for (HashMap<String, String> point : path) {
+                for (HashMap<String, String> point : path)
+                {
                     double lat = Double.parseDouble(point.get("lat"));
                     double lon = Double.parseDouble(point.get("lon"));
 
@@ -405,11 +399,12 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
 
                 polylineOptions.addAll(points);
                 polylineOptions.width(15);
-                polylineOptions.color(Color.BLUE);
+                polylineOptions.color(Color.BLACK);
                 polylineOptions.geodesic(true);
             }
 
-            if (polylineOptions!=null) {
+            if (polylineOptions!=null)
+            {
                 mMap.addPolyline(polylineOptions);
             } else {
                 Toast.makeText(getContext().getApplicationContext(), "Direction not found!", Toast.LENGTH_SHORT).show();
@@ -418,6 +413,42 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback, View.O
         }
     }
 
+    ///NON WORKING CODE, COULDN'T GET ROUTE SAVING WORKING///
 
+
+    private void takeSnapshot()
+    {
+        if (mMap == null)
+        {
+            return;
+        }
+
+        final GoogleMap.SnapshotReadyCallback callback = new GoogleMap.SnapshotReadyCallback()
+        {
+            @Override
+            public void onSnapshotReady(Bitmap snapshot)
+            {
+                Date date = new Date();
+
+                String strDateFormat = "hh:mm:ss a";
+
+                DateFormat dateFormat = new SimpleDateFormat(strDateFormat);
+
+                String formattedDate= dateFormat.format(date);
+                String sradius = textbox.getText().toString();
+
+                Log.d(TAG, "onSnapshotReady: ");
+                snapshotInterface.sendSnapshot(snapshot, sradius);
+            }
+        };
+        mMap.snapshot(callback);
+    }
+
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        snapshotInterface = (mapInterface) getActivity();
+    }
 
 }

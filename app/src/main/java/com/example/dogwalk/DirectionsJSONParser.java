@@ -14,6 +14,12 @@ import java.util.List;
  * Created by NgocTri on 12/11/2017.
  */
 
+//Google JSON documentation parser, tweaked by NgocTri which suits my needs.
+// https://github.com/armdhny/iTellU2/blob/master/app/src/main/java/com/example/ari/itellu/DirectionsParser.java
+//Hence why I left in NgocTri's signature, I didn't make this.
+
+//Used to parse JSON information returned by Google Servers after API request.
+
 public class DirectionsJSONParser {
     /**
      * Returns a list of lists containing latitude and longitude from a JSONObject

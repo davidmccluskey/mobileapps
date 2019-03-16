@@ -2,6 +2,7 @@ package com.example.dogwalk;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,26 +16,33 @@ import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 
-public class RecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>
+public class DogInfoAdapter extends RecyclerView.Adapter<DogInfoAdapter.ViewHolder>
 {
-    private static final String TAG = "RecyclerViewAdapter";
+    private static final String TAG = "DogInfoAdapter";
 
-    private ArrayList<String> mImageNames = new ArrayList<>();
+    private ArrayList<String> mDogType = new ArrayList<>();
     private ArrayList<String> mImages = new ArrayList<>();
+    private ArrayList<String> mDogInfo = new ArrayList<>();
     private Context mContext;
 
-    public RecyclerViewAdapter(ArrayList<String> mImageNames, ArrayList<String> mImages, Context mContext)
+    public DogInfoAdapter(ArrayList<String> mDogType, ArrayList<String> mImages,
+                          ArrayList<String> mDogInfo, Context mContext)
     {
-        this.mImageNames = mImageNames;
+        this.mDogType = mDogType;
         this.mImages = mImages;
+        this.mDogInfo = mDogInfo;
         this.mContext = mContext;
+    }
+
+    public DogInfoAdapter()
+    {
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int i)
     {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_listitem, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_listitem_doginfo, parent, false);
         ViewHolder holder = new ViewHolder(view);
         return holder;
     }
@@ -49,27 +57,37 @@ public class RecyclerViewAdapter  extends RecyclerView.Adapter<RecyclerViewAdapt
                 .load(mImages.get(position))
                 .into(holder.imageView);
 
-        holder.imageName.setText(mImageNames.get(position));
+        holder.dogType.setText(mDogType.get(position));
+        holder.dogInfo.setText(mDogInfo.get(position));
     }
 
     @Override
     public int getItemCount() {
-        return mImageNames.size();
+        if(mDogType!=null){
+            return mDogType.size();
+        } else{
+            return 0;
+        }
     }
+
 
     public class ViewHolder extends RecyclerView.ViewHolder
     {
 
         ImageView imageView;
-        TextView imageName;
+        TextView dogType;
+        TextView dogInfo;
         RelativeLayout parentLayout;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image);
-            imageName = itemView.findViewById(R.id.image_name);
+            dogType = itemView.findViewById(R.id.dogType);
+            dogInfo = itemView.findViewById(R.id.dogInfo);
             parentLayout = itemView.findViewById(R.id.parent_layout);
-
         }
     }
+
+
+
 }
