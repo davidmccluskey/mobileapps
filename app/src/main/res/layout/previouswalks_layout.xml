@@ -3,22 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PreviousWalks"
+    tools:context=".PreviousRoutes"
     android:id="@+id/previous_walks">
 
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:text="Proof of context, non functional."
-        android:layout_height="wrap_content"
-        android:id="@+id/text"/>
-
     <android.support.v7.widget.RecyclerView
-        android:layout_below="@+id/text"
         android:id="@+id/routesRecycler"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="30dp">
-    </android.support.v7.widget.RecyclerView>
+        android:layout_below="@+id/text"></android.support.v7.widget.RecyclerView>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/noviewtext"
+        android:text="No routes have been saved!"
+        android:textSize="20sp"
+        android:textColor="#000"
+        android:textStyle="bold"
+        android:layout_margin="50dp"/>
 </FrameLayout>

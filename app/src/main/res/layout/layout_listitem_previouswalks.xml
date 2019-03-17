@@ -3,7 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="5dp"
     android:id="@+id/parent_layout">
 
     <TextView
@@ -18,15 +17,16 @@
 
     <ImageView
         android:layout_width="wrap_content"
-        android:layout_height="200dp"
+        android:layout_height="wrap_content"
         android:layout_below="@id/routeInfo"
         android:id="@+id/mapImage"
         android:background="@drawable/border"
-        android:src="@color/colorPrimary" />
+        android:src="@color/colorPrimary"/>
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="match_parent"
         android:background="@color/colorAccent"
-        android:layout_below="@id/mapImage"/>
+        android:layout_below="@id/mapImage"
+        android:layout_marginBottom="5dp"/>
 
 </RelativeLayout>

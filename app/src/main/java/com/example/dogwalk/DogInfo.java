@@ -1,11 +1,9 @@
 package com.example.dogwalk;
-import android.graphics.Bitmap;
+
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,32 +14,35 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
-
+/**
+ * This fragment holds information on various breeds of dogs. The images and descriptions are hardcoded, and
+ * and the data is presented using a RecyclerView.
+ * The images are imported from Wikipedia, and parsed using Glide. The descriptions were from Google.
+ */
 public class DogInfo extends Fragment 
 {
+    //Setting up variables;
     private static final String TAG = "DogInfo";
+
+    //RecyclerView data is held in these Arraylists
     public ArrayList<String> mNames = new ArrayList<>();
     public  ArrayList<String> mImageUrls = new ArrayList<>();
     public ArrayList<String> mDogInfo = new ArrayList<>();
+
+    //RecyclerView, adapter and layout manager defined.
     public RecyclerView mRecyclerView;
     public RecyclerView.Adapter mAdapter;
     public RecyclerView.LayoutManager mLayoutManager;
 
-    public static DogInfo newInstance() {
-        DogInfo fragment = new DogInfo();
-        return fragment;
-    }
-
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
-        initImageBitmaps();
-        View mView = inflater.inflate(R.layout.doginfo_layout, container, false);
-        mRecyclerView = mView.findViewById(R.id.recyclerview);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
-        mAdapter = new DogInfoAdapter(mNames, mImageUrls, mDogInfo, mView.getContext());
-        mLayoutManager = new LinearLayoutManager(getContext());
+        initImageBitmaps(); //Adds the data to the lists before the RecyclerView is initialised.
+        View mView = inflater.inflate(R.layout.doginfo_layout, container, false); //Inflates layout.
+        mRecyclerView = mView.findViewById(R.id.recyclerview); //Assigns RecyclerView to the one in the fragment.
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL)); //Adds a line between each reyclerView object, for aesthetic reasons.
+        mAdapter = new DogInfoAdapter(mNames, mImageUrls, mDogInfo, mView.getContext()); //Creates new instance of the RecyclerView adapter class I created.
+        mLayoutManager = new LinearLayoutManager(getContext()); //Defines layout manager.
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
 
@@ -50,6 +51,11 @@ public class DogInfo extends Fragment
     
     private void initImageBitmaps()
     {
+        //This class defines all the images, names, and information for each of the instances in the recyclerView.
+        //Each instance HAS to have an image, data and name otherwise the data would shift up or down (as it assigns
+        //each array index individually.)
+        //Glide uses direct image URLS, hence the upload.wikimedia.org, as this is a direct link to the image.
+
         Log.d(TAG, "initImageBitmaps: Preparing Bitmaps.");
 
         mImageUrls.add("https://upload.wikimedia.org/wikipedia/commons/d/de/Smooth_Dachshund_red_and_tan_portrait.jpg");

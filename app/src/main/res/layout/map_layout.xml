@@ -64,7 +64,7 @@
                     android:gravity="center"
                     android:padding="10dp"
                     android:textColorHint="#808080"
-                    android:hint="Enter a distance."
+                    android:hint="Enter a distance in metres."
                     android:textColor="#000"/>
                 <Button
                     android:id="@+id/btnGenerate"

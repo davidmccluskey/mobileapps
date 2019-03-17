@@ -15,8 +15,8 @@ import java.util.List;
  */
 
 //Google JSON documentation parser, tweaked by NgocTri which suits my needs.
-// https://github.com/armdhny/iTellU2/blob/master/app/src/main/java/com/example/ari/itellu/DirectionsParser.java
-//Hence why I left in NgocTri's signature, I didn't make this.
+//https://github.com/armdhny/iTellU2/blob/master/app/src/main/java/com/example/ari/itellu/DirectionsParser.java
+//I didn't create this class, it was taken from the Github above. Comments in green are not my own.
 
 //Used to parse JSON information returned by Google Servers after API request.
 

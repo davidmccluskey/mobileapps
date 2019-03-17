@@ -51,74 +51,121 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class MapFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener {
+/**
+ * My map fragment class, which handles the main feature of my app - generating routes using the Google maps
+ * API. I could have split this into smaller classes, but I don't have any performance issues so I focused on
+ * other things.
+ *
+ * This class has methods for getting the location permission, setting up the mapview, as well as all the
+ * route generation logic and polyline parsing methods.
+ *
+ * All of the directionsAPI request methods are based on this Github: https://github.com/gripsack/android
+ * This includes: GetRequestURL, requestDirection, taskRequestDirection, and taskParser.
+ * These methods are essential in using the Google Maps API, and the gripsack version worked better for me.
+ */
+
+public class MapFragment extends Fragment implements OnMapReadyCallback, View.OnClickListener
+{
+    //Sets up all the variables used by the class.
     private static final String TAG = "MapFragment";
-    private GoogleMap mMap;
-    private static Button b1, b2;
+
+    private GoogleMap mMap; //mMap is a GoogleMap object, which is an object required by the GoogleMaps API.
+
+    private static Button btnGen, btnSave; //Defines buttons within sliding drawer.
     private static EditText textbox;
+
     private FusedLocationProviderClient mFusedLocationProvider;
     private Boolean mLocationPermissionGranted = false;
     private static final int REQUEST_CODE = 1;
-    private LatLng latLngLocation;
+    private LatLng latLngLocation; //Userlocation, which is updated every time the location changes.
     private List<LatLng> listPoints = new ArrayList<>();
     private static final int LOCATION_REQUEST = 500;
-    mapInterface snapshotInterface;
+
+    mapInterface snapshotInterface; //Interface instance for passing data to PreviousRoutes.
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+    {
+        //"onCreateView" is the fragment onCreate equivalent, set up in pretty much the same way,
+        //however the view is returned.
+
         View mView = inflater.inflate(R.layout.map_layout, null, false);
         GetLocationPermissions();
 
         SupportMapFragment mapFragment = (SupportMapFragment) this.getChildFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        b1 = mView.findViewById(R.id.btnGenerate);
-        b2 = mView.findViewById(R.id.btnSave);
+        btnGen = mView.findViewById(R.id.btnGenerate);
+        btnSave = mView.findViewById(R.id.btnSave);
 
-        b1.setOnClickListener(this);
-        b2.setOnClickListener(this);
+
+        btnGen.setOnClickListener(this);
+        btnSave.setOnClickListener(this);
+
+        btnSave.setEnabled(false); //disables the save route button, as I don't want it used before a route is saved.
+        btnSave.setTextColor(Color.parseColor("#808080")); //sets the save route button text colour to grey, as a visual indication  that it is disabled.
+
         textbox = mView.findViewById(R.id.radius);
         return mView;
     }
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        if (mLocationPermissionGranted) {
-            LatLng userLocation = GetLocation();
+    public void onAttach(Context context)
+    {
+        //First method called when fragment is created, used to get current mainactivity instance and
+        //assign snapshot interface. differs from onCreateView because the layout and view aren't initialised
+        //until onCreateView is called, so that logic does not belong in this method.
+        super.onAttach(context);
+        snapshotInterface = (mapInterface) getActivity();
+    }
 
+    @Override
+    public void onMapReady(GoogleMap googleMap)
+    {
+        //this method is called when the GoogleMap is set up and nested in its fragment.
+        //Assignes mMap to the set up GoogleMap, and finds the users location.
+        mMap = googleMap;
+        if (mLocationPermissionGranted)
+        {
+            GetLocation();
             if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(),
                     Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-            mMap.setMyLocationEnabled(true);
+            mMap.setMyLocationEnabled(true); //If location permission is granted, the user location will be displayed
+                                            //and a button to find the users location is defined within the GoogleMap fragment.
         }
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(View v)
+    {
+        //Standard onClick using a switch statement which relies on if the generate or save button is clicked.
         String sradius = textbox.getText().toString();
         switch (v.getId()) {
             case R.id.btnGenerate:
                 try
                 {
-                    int radius = Integer.parseInt(sradius);
-                    Log.d(TAG, "onClick: User location is " + latLngLocation);
-                    mMap.clear();
-                    listPoints.clear();
-                    RandomPoints(latLngLocation, radius);
+                    int radius = Integer.parseInt(sradius); //sRadius is the value the user entered for the distance.
+                    mMap.clear(); //Clears map of any previously created polylines and markers, to prevent clutter.
+                    listPoints.clear(); //Clears the array that holds the randomly generated points.
+                    RandomPoints(latLngLocation, radius); //Calls method that generates random points based on the users location.
+
+                    btnSave.setEnabled(true); //Enables the save route button, because an exception is thrown if an invalid radius input is given.
+                    btnSave.setTextColor(Color.parseColor("#FFFFFF")); //Sets the save route button text to white, indicating it's ready to use.
                     break;
+
                 } catch (Exception e)
                 {
-                    Log.i("",sradius+" is not a number");
+                    //An exception is thrown if a non integer value is input, and a toast popped.
                     Toast.makeText(getContext(), "Please enter a number.", Toast.LENGTH_SHORT).show();
                     break;
                 }
             case R.id.btnSave:
+                //calls the take snapshot method if the save route button is clicked.
                 takeSnapshot();
-                Toast.makeText(getContext(), "Feature not currently working.", Toast.LENGTH_SHORT).show();
                 break;
 
             default:
@@ -128,6 +175,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
 
     public void GetLocationPermissions()
     {
+        //Gets location permission, method created using Mobile Applications practicals.
         String fineLocation = Manifest.permission.ACCESS_FINE_LOCATION;
         String courseLocation = Manifest.permission.ACCESS_COARSE_LOCATION;
 
@@ -151,31 +199,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
         }
     }
 
-    public void onRequestPermission(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
-    {
-        mLocationPermissionGranted = false;
-
-        switch(requestCode)
-        {
-            case REQUEST_CODE:
-            {
-                if(grantResults.length > 0)
-                {
-                    for (int i = 0; i < grantResults.length; i++)
-                    {
-                        if(grantResults[i] != PackageManager.PERMISSION_GRANTED)
-                        {
-                            mLocationPermissionGranted = false;
-                            return;
-                        }
-                    }
-                    mLocationPermissionGranted = true;
-                }
-            }
-        }
-    }
     private LatLng GetLocation()
     {
+        //This method gets the users current location (when it's changed) and moves the camera toward that location.
         mFusedLocationProvider = LocationServices.getFusedLocationProviderClient(getActivity());
         try
         {
@@ -208,24 +234,35 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
 
     private void moveCamera(LatLng latLng, float zoom)
     {
+        //Moves the mMap camera to a specific location (centered on a latitude/longitute, with a fixed zoom.)
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
     }
 
 
     public void RandomPoints(LatLng userLocation, int radius)
     {
+        //This method is called when the generate route button is clicked. It generates 4 random points,
+        //within a circle, where the center is the users location, and the radius is the distance the user entered/3.
+        //I divide the radius by 3 because the total route length is what the user enters, not the max distance they want to go away from where they are,
+        //and I found dividing by 3 (the number of random points generated) gives a good rough approximation of the distance.
+
         radius = radius/3;
 
         int dg = ThreadLocalRandom.current().nextInt(90, 180 + 1);
-        //int dg = 90;
+
+        //perflat and perflong are generated to be right on the edge of the circle, which means the route isn't cramped to the center of the circle.
+        //formula based on what's found here: https://gis.stackexchange.com/questions/37615/how-to-place-markers-on-the-outline-of-a-circle-in-google-maps
+
         double perflat = Math.sin(dg * Math.PI / 180) * (radius/111000f) + userLocation.latitude;
         double perflng = Math.cos(dg * Math.PI / 180) * (radius/111000f) + userLocation.longitude;
 
         LatLng perfectLatLng = new LatLng(perflat, perflng);
-        listPoints.add(perfectLatLng);
+        listPoints.add(perfectLatLng); //adds perflat and perlong to listpoints, as a latlng rather than two seperate coordinates.
 
         for (int i = 0; i < 3; i++)
         {
+            //This loop generates 3 random points within a circle (at any point within the circle, rather than the outer edges.) and adds them to the
+            //listpoints array.
             double x0 = userLocation.latitude;
             double y0 = userLocation.longitude;
 
@@ -240,18 +277,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
             double t = 2 * Math.PI * v;
             double x = w * Math.cos(t);
             double y = w * Math.sin(t);
-
-            // Adjust the x-coordinate for the shrinking of the east-west distances
             double new_x = x / Math.cos(y0);
 
             double foundLatitude = new_x + x0;
             double foundLongitude = y + y0;
             LatLng randomLatLng = new LatLng(foundLatitude, foundLongitude);
             listPoints.add(randomLatLng);
-            Location l1 = new Location("");
-            l1.setLatitude(randomLatLng.latitude);
-            l1.setLongitude(randomLatLng.longitude);
         }
+
+        //Once all of the random points have been found, a waypoint string is generated (the waypoint string is used in my google maps API request.)
+        //It starts with "&waypoints=optimize:true" which tells the API to find the most efficient route between the points. After that, each random point LatLng, or waypoint,
+        //is added to the string with a "via:" prefix, and a "%2C" suffix. This fits in with the API request formatting, and is then passed to the RequestURL method to
+        //finish the API request url.
 
         String waypointString = "&waypoints=optimize:true";
 
@@ -267,29 +304,31 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
         MapFragment.TaskRequestDirections taskRequestDirections = new MapFragment.TaskRequestDirections();
         taskRequestDirections.execute(url);
 
-
     }
 
     private String getRequestUrl(LatLng userlocation, String waypointString)
     {
-        //Value of origin
+        //Both the origin and destination are the users location, because they want to end up back home after the walk.
+
         String str_org = "origin=" + userlocation.latitude +","+userlocation.longitude;
-        //Value of destination
         String str_dest = "destination=" + userlocation.latitude+","+userlocation.longitude;
-        //Set value enable the sensor
-        //Mode for find direction
-        String mode = "mode=walking";
-        //Build the full param
-        String param = str_org +"&" + str_dest +"&" +waypointString+"&" + mode;
-        //Output format
+
+        //Build the full URL
+        String param = str_org +"&" + str_dest +"&" +waypointString+"&mode=walking"; //Mode is the mode that the user is taking - It can have the values public transport, running, driving etc, but this is a walking app.
+        //output is the format that the API returns the data in - in this case a JSON file - which is passed to my JSON parser later on.
         String output = "json";
         //Create url to request
         String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + param +"&key="+getString(R.string.directionsApiKey);
+        //&key is a Google Maps API key, stored in strings.xml. The Key is used to verify directions requests, and is unique to my app and my Google Account.
         return url;
     }
 
     private String requestDirection(String reqUrl) throws IOException
     {
+        //This method is provided by the Google Developers Documentation, so it was taken in full from there. The API request cannot work without this method,
+        //and I did not create it. It was explained to me in a YouTube video linked here - https://www.youtube.com/watch?v=sdinkRanD0I and here
+        //https://www.youtube.com/watch?v=xl0GwkLNpNI
+
         String responseString = "";
         InputStream inputStream = null;
         HttpURLConnection httpURLConnection = null;
@@ -338,7 +377,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
 
     public class TaskRequestDirections extends AsyncTask<String, Void, String>
     {
-
+        //Requests the API in the background, and "onPostExecute" parses the data returned - it's asynced otherwise the app would freeze while
+        //waiting for the data.
         @Override
         protected String doInBackground(String... strings) {
             String responseString = "";
@@ -361,7 +401,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
 
     public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>> >
     {
-
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... strings) {
             JSONObject jsonObject = null;
@@ -378,8 +417,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
 
         @Override
         protected void onPostExecute(List<List<HashMap<String, String>>> lists) {
-            //Get list route and display it into the map
 
+            //Takes the list data and creates a polyline, which is then added to the map.
             ArrayList points = null;
 
             PolylineOptions polylineOptions = null;
@@ -399,7 +438,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
 
                 polylineOptions.addAll(points);
                 polylineOptions.width(15);
-                polylineOptions.color(Color.BLACK);
+                polylineOptions.color(Color.BLUE);
                 polylineOptions.geodesic(true);
             }
 
@@ -413,11 +452,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
         }
     }
 
-    ///NON WORKING CODE, COULDN'T GET ROUTE SAVING WORKING///
-
-
     private void takeSnapshot()
     {
+        //This method is provided by the Google Maps API, and provides a way to take a screenshot of the
+        //current map as seen on the screen. The screenshot is then passed to the PreviousRoutes fragment,
+        //along with date time information and route length information.
+
         if (mMap == null)
         {
             return;
@@ -430,25 +470,33 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
             {
                 Date date = new Date();
 
-                String strDateFormat = "hh:mm:ss a";
-
+                String strDateFormat = "dd/MM/yyyy";
                 DateFormat dateFormat = new SimpleDateFormat(strDateFormat);
-
                 String formattedDate= dateFormat.format(date);
                 String sradius = textbox.getText().toString();
 
+                String info = (sradius+"m - "+formattedDate);
+
+                snapshot = resizeBitmap(snapshot);
                 Log.d(TAG, "onSnapshotReady: ");
-                snapshotInterface.sendSnapshot(snapshot, sradius);
+                snapshotInterface.sendSnapshot(snapshot, info);
             }
         };
         mMap.snapshot(callback);
     }
 
+    private Bitmap resizeBitmap(Bitmap snapshot)
+    {
+        //This method takes the full length screenshot and cuts the top and bottom, forming a square with
+        //the route in the centre.
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        snapshotInterface = (mapInterface) getActivity();
+        snapshot = Bitmap.createBitmap(
+                    snapshot,
+                    0,
+                    snapshot.getHeight()/2 - snapshot.getWidth()/2,
+                    snapshot.getWidth(),
+                    snapshot.getWidth());
+
+        return snapshot;
     }
-
 }
