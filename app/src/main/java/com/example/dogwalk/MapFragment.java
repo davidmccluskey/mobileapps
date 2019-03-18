@@ -330,6 +330,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
         //and I did not create it. It was explained to me in a YouTube video linked here - https://www.youtube.com/watch?v=sdinkRanD0I and here
         //https://www.youtube.com/watch?v=xl0GwkLNpNI
 
+        //Not my code
+
         String responseString = "";
         InputStream inputStream = null;
         HttpURLConnection httpURLConnection = null;
@@ -380,6 +382,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
     {
         //Requests the API in the background, and "onPostExecute" parses the data returned - it's asynced otherwise the app would freeze while
         //waiting for the data.
+
+        //Not my code
         @Override
         protected String doInBackground(String... strings) {
             String responseString = "";
@@ -402,6 +406,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
 
     public class TaskParser extends AsyncTask<String, Void, List<List<HashMap<String, String>>> >
     {
+        //Not my code
         @Override
         protected List<List<HashMap<String, String>>> doInBackground(String... strings) {
             JSONObject jsonObject = null;
