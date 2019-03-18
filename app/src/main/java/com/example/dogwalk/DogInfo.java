@@ -37,7 +37,7 @@ public class DogInfo extends Fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
-        initImageBitmaps(); //Adds the data to the lists before the RecyclerView is initialised.
+        init(); //Adds the data to the lists before the RecyclerView is initialised.
         View mView = inflater.inflate(R.layout.doginfo_layout, container, false); //Inflates layout.
         mRecyclerView = mView.findViewById(R.id.recyclerview); //Assigns RecyclerView to the one in the fragment.
         mRecyclerView.addItemDecoration(new DividerItemDecoration(mRecyclerView.getContext(), DividerItemDecoration.VERTICAL)); //Adds a line between each reyclerView object, for aesthetic reasons.
@@ -49,7 +49,7 @@ public class DogInfo extends Fragment
         return mView;
     }
     
-    private void initImageBitmaps()
+    private void init()
     {
         //This class defines all the images, names, and information for each of the instances in the recyclerView.
         //Each instance HAS to have an image, data and name otherwise the data would shift up or down (as it assigns

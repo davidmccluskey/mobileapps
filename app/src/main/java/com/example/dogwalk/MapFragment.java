@@ -166,6 +166,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback, View.On
             case R.id.btnSave:
                 //calls the take snapshot method if the save route button is clicked.
                 takeSnapshot();
+                Toast.makeText(getContext(), "Route Saved!", Toast.LENGTH_SHORT).show();
                 break;
 
             default:
